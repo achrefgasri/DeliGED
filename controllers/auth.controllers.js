@@ -7,20 +7,20 @@ const User = require("../models/user.model");
 const upload = require('../utils/uploadfile'); 
 const Register = async (req, res) => {
     const {
-      firstname,
-      lastname,
-      email,
-      role, 
-      bio,
-      picture,
-      birthdate,
+      Nom,
+      Prénom,
+      CIN,
+      Telephone,
+      Email,
+      Département, 
+      Role,
     } = req.body;
   
     try {
     
   
       // Check if the user already exists
-      const existingUserEmail = await User.findOne({ email });
+      const existingUserEmail = await User.findOne({  Email });
       if (existingUserEmail) {
         return res.status(400).send({ msg: "User already exists" });
       }
@@ -30,20 +30,20 @@ const Register = async (req, res) => {
         
         // Create a new user
         const user = new User({
-          firstname,
-          lastname,
-          email,
-          role, 
-          bio,
-          birthdate,
-          password: randomPassword, // Saving random password before hashing
-          picture: "vv" // Enregistrez le chemin de l'image dans la base de données
+      
+    Nom,
+    Prénom,
+    CIN,
+    Telephone,
+    Email,
+    Département, 
+    Role,
         });
         
         // Hash the password
         const salt = bcrypt.genSaltSync(10);
         const hashedPassword = bcrypt.hashSync(randomPassword, salt);
-        user.password= hashedPassword;
+        user.MotdePasse= hashedPassword;
         
         // Save the user in DB
         await user.save();
@@ -51,7 +51,7 @@ const Register = async (req, res) => {
         // Send email with the password
         const message = `Votre mot de passe est ${randomPassword}`;
         await sendEmail({
-          email: email,
+          email: Email,
           subject: 'DeliGED Password Recovery',
           message,
         });
@@ -73,14 +73,13 @@ const Register = async (req, res) => {
   const convertUser = (user) => {
     return {
       id: user._id,
-      email: user.email,
+      email: user.Email,
       
     };
   };
   
   const Login = async (req, res) => {
-    const { email, password } = req.body;
-  
+    const { email, motdepasse} = req.body;
     try {
      // verification of email exist
       const user = await User.findOne({ email });
@@ -89,11 +88,11 @@ const Register = async (req, res) => {
       }
   
     // verification of password true 
-      if (!password || !user.password) {
+      if (!motdepasse || !user.MotdePasse) {
         return res.status(400).send({ msg: "Invalid Credentials" });
       }
   
-      const isMatch = await bcrypt.compare(password, user.password);
+      const isMatch = await bcrypt.compare(motdepasse, user.MotdePasse);
       if (!isMatch) {
         return res.status(400).send({ msg: "Bad Credentials: Password" });
       }
@@ -103,7 +102,7 @@ const Register = async (req, res) => {
         _id: user._id,
       };
   
-      const token = jwt.sign(payload, process.env.secretOrKey, { expiresIn: '1h' }); // إضافة مدة انتهاء الصلاحية
+      const token = jwt.sign(payload, process.env.secretOrKey, { expiresIn: '1h' }); 
   
       res.send({ msg: "Login Success", user: convertUser(user), token });
     } catch (error) {
